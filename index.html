@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <link rel=stylesheet href=https://cdn.jsdelivr.net/npm/pretty-print-json@2.1/dist/css/pretty-print-json.css>
+        <script src=https://cdn.jsdelivr.net/npm/pretty-print-json@2.1/dist/pretty-print-json.min.js></script>
+
+        <meta charset="UTF-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+        <title>Star Wars CCG CardShop</title>
+        <script>
+            const apiUrl = "https://localhost:32770/CardShop/GetShopInventory";
+            const requestBody = {
+                /* Your request data goes here */
+            };
+
+            fetch(apiUrl, {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json",
+                },
+                body: JSON.stringify(requestBody),
+            })
+                .then((response) => response.json())
+                .then((data) => {
+                    // Handle the response data here
+                    console.log(data);
+                    const elem = document.getElementById('inventory');
+                    elem.innerHTML = prettyPrintJson.toHtml(data);
+
+                    const table = document.getElementById('inventory_table');
+                    let table_html = "<tr><th>Product</th><th>Qty</th><th>Price</th></tr>";
+                    for (product of data.inventory) {
+                        table_html += "<tr><td>" + product.product.name + "</td><td>" + product.count + "</td><td>" + product.product.costPer + "</td></tr>";
+                    }
+                    table.innerHTML = table_html;
+                })
+                .catch((error) => {
+                    console.error("Error:", error);
+                });
+
+            
+        </script>
+    </head>
+    <body>
+        <h1>Star Wars CCG CardShop</h1>
+        <table border="1" id="inventory_table">
+            
+            
+        </table>
+        <pre id=inventory class=json-container></pre>
+    </body>
+</html>
