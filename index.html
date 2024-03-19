@@ -1,52 +1,188 @@
 <!DOCTYPE html>
 <html lang="en">
     <head>
-        <link rel=stylesheet href=https://cdn.jsdelivr.net/npm/pretty-print-json@2.1/dist/css/pretty-print-json.css>
-        <script src=https://cdn.jsdelivr.net/npm/pretty-print-json@2.1/dist/pretty-print-json.min.js></script>
-
         <meta charset="UTF-8" />
         <meta name="viewport" content="width=device-width, initial-scale=1.0" />
         <title>Star Wars CCG CardShop</title>
+        <link rel="stylesheet" href="https://unpkg.com/missing.css@1.1.1" />
+        <style>
+            table th,
+            table td {
+                padding: 2px;
+            }
+        </style>
         <script>
-            const apiUrl = "https://localhost:32770/CardShop/GetShopInventory";
-            const requestBody = {
-                /* Your request data goes here */
+            const apiServer = "https://localhost:32774";
+            const userId = "1";
+            let allInventory;
+
+            const fetchUserInventory = () => {
+                // Fetch User Inventory
+                const userInventoryRequestBody = {
+                    /* Your request data goes here */
+                };
+                fetch(
+                    apiServer + "/Testing/GetUserInventory?userId=" + userId,
+                    {
+                        method: "POST",
+                        headers: {
+                            "Content-Type": "application/json",
+                        },
+                        body: JSON.stringify(userInventoryRequestBody),
+                    }
+                )
+                    .then((response) => response.json())
+                    .then((data) => {
+                        // Handle the response data here
+                        console.log(data);
+
+                        const table = document.getElementById(
+                            "user_inventory_table"
+                        );
+                        let table_html =
+                            "<tr><th>Product</th><th>Qty</th></tr>";
+                        for (product of data) {
+
+                            let productData = allInventory.find(obj => obj.product.code === product.productCode);
+                            console.log(productData);
+
+                            table_html +=
+                                "<tr><td>" +
+                                productData.product.name +
+                                "</td><td>" +
+                                product.count +
+                                "</td></tr>";
+                        }
+                        table.innerHTML = table_html;
+                    })
+                    .catch((error) => {
+                        console.error("Error:", error);
+                    });
+
+            }
+
+            const refresh = () => {
+
+                // Fetch Shop Inventory
+                const allInventoryRequestBody = {
+                    /* Your request data goes here */
+                };
+                fetch(apiServer + "/CardShop/GetShopInventory?includeOutOfStock=true", {
+                    method: "POST",
+                    headers: {
+                        "Content-Type": "application/json",
+                    },
+                    body: JSON.stringify(allInventoryRequestBody),
+                })
+                    .then((response) => response.json())
+                    .then((data) => {
+                        // Handle the response data here
+                        console.log(data);
+                        allInventory = data.inventory;
+                        fetchUserInventory();
+                    })
+                    .catch((error) => {
+                        console.error("Error:", error);
+                    });
+
+                // Fetch User Info
+                const userInformationRequestBody = {};
+                fetch(apiServer + "/Testing/GetUser?userId=" + userId, {
+                    method: "POST",
+                    headers: {
+                        "Content-Type": "application/json",
+                    },
+                    body: JSON.stringify(userInformationRequestBody),
+                })
+                    .then((response) => response.json())
+                    .then((data) => {
+                        // Handle the response data here
+                        console.log(data);
+
+                        const table =
+                            document.getElementById("user_info_table");
+                        let table_html =
+                            "<tr><th>Username</th><th>Balance</th></tr>";
+
+                        table_html +=
+                            "<tr><td>" +
+                            data.userName +
+                            "</td><td>" +
+                                new Intl.NumberFormat(undefined, {
+                                    style: "currency",
+                                    currency: "USD",
+                                }).format(data.balance) +
+                            "</td></tr>";
+
+                        table.innerHTML = table_html;
+                    })
+                    .catch((error) => {
+                        console.error("Error:", error);
+                    });
+
+
+                // Fetch Shop Inventory
+                const shopInventoryRequestBody = {
+                    /* Your request data goes here */
+                };
+                fetch(apiServer + "/CardShop/GetShopInventory", {
+                    method: "POST",
+                    headers: {
+                        "Content-Type": "application/json",
+                    },
+                    body: JSON.stringify(shopInventoryRequestBody),
+                })
+                    .then((response) => response.json())
+                    .then((data) => {
+                        // Handle the response data here
+                        console.log(data);
+
+                        const table = document.getElementById(
+                            "shop_inventory_table"
+                        );
+                        let table_html =
+                            "<tr><th>Product</th><th>Qty</th><th>Price</th></tr>";
+                        for (product of data.inventory) {
+                            table_html +=
+                                "<tr><td>" +
+                                product.product.name +
+                                "</td><td>" +
+                                product.count +
+                                "</td><td>" +
+                                new Intl.NumberFormat(undefined, {
+                                    style: "currency",
+                                    currency: "USD",
+                                }).format(product.product.costPer) +
+                                "</td></tr>";
+                        }
+                        table.innerHTML = table_html;
+                    })
+                    .catch((error) => {
+                        console.error("Error:", error);
+                    });
             };
 
-            fetch(apiUrl, {
-                method: "POST",
-                headers: {
-                    "Content-Type": "application/json",
-                },
-                body: JSON.stringify(requestBody),
-            })
-                .then((response) => response.json())
-                .then((data) => {
-                    // Handle the response data here
-                    console.log(data);
-                    const elem = document.getElementById('inventory');
-                    elem.innerHTML = prettyPrintJson.toHtml(data);
-
-                    const table = document.getElementById('inventory_table');
-                    let table_html = "<tr><th>Product</th><th>Qty</th><th>Price</th></tr>";
-                    for (product of data.inventory) {
-                        table_html += "<tr><td>" + product.product.name + "</td><td>" + product.count + "</td><td>" + product.product.costPer + "</td></tr>";
-                    }
-                    table.innerHTML = table_html;
-                })
-                .catch((error) => {
-                    console.error("Error:", error);
-                });
-
-            
+            refresh();
         </script>
     </head>
     <body>
-        <h1>Star Wars CCG CardShop</h1>
-        <table border="1" id="inventory_table">
-            
-            
-        </table>
-        <pre id=inventory class=json-container></pre>
+        <main>
+            <h1>Star Wars CCG CardShop</h1>
+
+            <h2>User Information</h2>
+            <table border="1" id="user_info_table"></table>
+
+            <div style="display: flex">
+                <div style="margin-right: 30px">
+                    <h2>User Inventory</h2>
+                    <table border="1" id="user_inventory_table"></table>
+                </div>
+
+                <div>
+                    <h2>Shop Inventory</h2>
+                    <table border="1" id="shop_inventory_table"></table>
+                </div>
+            </div>
+        </main>
     </body>
 </html>
