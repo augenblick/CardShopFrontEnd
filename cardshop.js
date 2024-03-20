@@ -189,12 +189,18 @@ const refresh = () => {
 };
 
 const initialize = () => {
+
+    // Get the API server url and user id from local storage
+    apiServer = localStorage.getItem("apiServer") || apiServer;
+    userId = localStorage.getItem("userId") || userId;
+
     document.addEventListener("DOMContentLoaded", () => {
         let el = document.getElementById("api_server_url");
         el.value = apiServer;
         // Listen for changes to api_server_url
         el.addEventListener("change", (event) => {
             apiServer = event.target.value;
+            localStorage.setItem("apiServer", apiServer);
             refresh();
         });
 
@@ -203,9 +209,9 @@ const initialize = () => {
         // Listen for changes to user_id
         el.addEventListener("change", (event) => {
             userId = event.target.value;
+            localStorage.setItem("userId", userId);
             refresh();
         });
-
     });
 
     refresh();
