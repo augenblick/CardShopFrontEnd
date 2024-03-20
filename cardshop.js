@@ -1,5 +1,5 @@
-const apiServer = "https://localhost:32774";
-const userId = "1";
+let apiServer = "https://localhost:32774";
+let userId = "1";
 let allInventory;
 
 const fetchUserInventory = () => {
@@ -188,4 +188,27 @@ const refresh = () => {
     fetchShopInventory();
 };
 
-refresh();
+const initialize = () => {
+    document.addEventListener("DOMContentLoaded", () => {
+        let el = document.getElementById("api_server_url");
+        el.value = apiServer;
+        // Listen for changes to api_server_url
+        el.addEventListener("change", (event) => {
+            apiServer = event.target.value;
+            refresh();
+        });
+
+        el = document.getElementById("user_id");
+        el.value = userId;
+        // Listen for changes to user_id
+        el.addEventListener("change", (event) => {
+            userId = event.target.value;
+            refresh();
+        });
+
+    });
+
+    refresh();
+};
+
+initialize();
