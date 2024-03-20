@@ -10,12 +10,34 @@
             table td {
                 padding: 2px;
             }
+            .horizontal-bar {
+                display: flex;
+            }
+
+            .item {
+                padding: 10px;
+                margin-right: 10px;
+            }
         </style>
         <script src="cardshop.js"></script>
     </head>
     <body>
         <main>
             <h1>Star Wars CCG CardShop</h1>
+
+            <div class="horizontal-bar">
+                <div class="item">
+                    <label
+                        >API Server URL
+                        <input type="url" id="api_server_url"
+                    /></label>
+                </div>
+                <div class="item">
+                    <label
+                        >User ID <input type="text" id="user_id"
+                    /></label>
+                </div>
+            </div>
 
             <h2>User Information</h2>
             <table border="1" id="user_info_table"></table>
