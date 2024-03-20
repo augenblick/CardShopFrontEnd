@@ -189,7 +189,6 @@ const refresh = () => {
 };
 
 const initialize = () => {
-
     // Get the API server url and user id from local storage
     apiServer = localStorage.getItem("apiServer") || apiServer;
     userId = localStorage.getItem("userId") || userId;
