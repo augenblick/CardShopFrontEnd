@@ -1,6 +1,43 @@
 let apiServer = "https://localhost:32774";
 let userId = "1";
 let allInventory;
+let displayedCard;
+
+const displayCard = async (productCode) => {
+    console.log("displayCard", productCode);
+
+    let cardDiv = document.getElementById("card");
+    if (displayedCard) {
+        cardDiv.innerHTML = "";
+    }
+    if (displayedCard === productCode) {
+        displayedCard = null;
+    } else {
+        let productInfo = await getProductInfo(productCode);
+
+        console.log("product info", productInfo);
+
+        if (productInfo["$type"] === "Card") {
+            let html = 
+            // `<div class="box <small>">
+            `<strong>Name:</strong> ${productInfo.name}<br />
+            <strong>Code:</strong> ${productInfo.code}<br />
+            <strong>Set:</strong> ${productInfo.setCode}<br />
+            <strong>Rarity:</strong> ${productInfo.rarityCode}<br />
+            <strong>Side:</strong> ${productInfo.sideCode}<br />
+            <strong>Type:</strong> ${productInfo.typeCode}<br />
+            <strong>Text:</strong> ${productInfo.gametext}<br />
+            <strong>Lore:</strong> ${productInfo.lore}<br />
+            `;
+            // </div>
+            // `;
+
+            cardDiv.innerHTML = html;
+
+            displayedCard = productCode;
+        }
+    }
+};
 
 const getProductInfoFromServer = (productCode) => {
     // Get Product Info
@@ -103,18 +140,20 @@ const fetchUserInventory = () => {
                 } else {
                     let type = productData["$type"];
 
-                    table_html +=
-                        "<tr><td>" +
-                        productData.name +
-                        "</td><td>" +
-                        product.count +
-                        "</td><td>" +
-                        (type != "Card"
+                    console.log(productData.code);
+                    console.log(product.productCode);
+
+                    table_html += `<tr><td${
+                        type === "Card"
+                            ? ` onclick="displayCard('${productData.code.trim()}')"`
+                            : ``
+                    }>${productData.name}</td><td>${product.count}</td><td>${
+                        type != "Card"
                             ? "<button onclick='openProduct(\"" +
                               productData.code +
                               "\")'>Open 1</button>"
-                            : "") +
-                        "</td></tr>";
+                            : ""
+                    }</td></tr>`;
                 }
             }
             table.innerHTML = table_html;
