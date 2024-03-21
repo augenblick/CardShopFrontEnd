@@ -2,13 +2,13 @@ let apiServer = "https://localhost:32774";
 let userId = "1";
 let allInventory;
 
-const getProductInfo = (productId) => {
+const getProductInfo = (productCode) => {
     // Get Product Info
     const productInfoRequestBody = {
         /* Your request data goes here */
     };
     return fetch(
-        apiServer + "/CardShop/GetProductInfo?productCode=" + productId,
+        apiServer + "/CardShop/GetProductInfo?productCode=" + productCode,
         {
             method: "POST",
             headers: {
@@ -20,7 +20,7 @@ const getProductInfo = (productId) => {
         .then((response) => response.json())
         .then((data) => {
             // Handle the response data here
-            console.log("product info for", productId, ":", data);
+            console.log("product info for", productCode, ":", data);
             return data;
         })
         .catch((error) => {
@@ -206,11 +206,11 @@ const fetchShopInventory = () => {
         });
 };
 
-const buyProduct = (productId) => {
+const buyProduct = (productCode) => {
     // Buy Product
     const buyProductRequestBody = {
         purchaserId: userId,
-        inventoryItems: [{ productCode: productId, count: 1 }],
+        inventoryItems: [{ productCode: productCode, count: 1 }],
     };
     fetch(apiServer + "/CardShop/PurchaseProduct", {
         method: "POST",
@@ -230,11 +230,11 @@ const buyProduct = (productId) => {
         });
 };
 
-const openProduct = (productId) => {
+const openProduct = (productCode) => {
     // Open Product
     const openProductRequestBody = {
         userId: userId,
-        inventoryProductsToOpen: [{ productCode: productId, count: 1 }],
+        inventoryProductsToOpen: [{ productCode: productCode, count: 1 }],
     };
     fetch(apiServer + "/CardShop/OpenInventoryProducts", {
         method: "POST",
