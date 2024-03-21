@@ -2,8 +2,9 @@ let apiServer = "https://localhost:32774";
 let userId = "1";
 let allInventory;
 
-const getProductInfo = (productCode) => {
+const getProductInfoFromServer = (productCode) => {
     // Get Product Info
+
     const productInfoRequestBody = {
         /* Your request data goes here */
     };
@@ -20,12 +21,50 @@ const getProductInfo = (productCode) => {
         .then((response) => response.json())
         .then((data) => {
             // Handle the response data here
-            console.log("product info for", productCode, ":", data);
             return data;
         })
         .catch((error) => {
             console.error("Error:", error);
         });
+};
+
+const getProductInfoFromLocalStorage = (productCode) => {
+    // Get Product Info from Local Storage
+    let productInfo = localStorage.getItem(productCode);
+    if (productInfo) {
+        productInfo = JSON.parse(productInfo);
+
+        return productInfo;
+    } else {
+        return null;
+    }
+};
+
+const getProductInfo = async (productCode) => {
+    // Get Product Info
+    let productInfo = getProductInfoFromLocalStorage(productCode);
+    if (productInfo) {
+        console.log(
+            "product info for",
+            productCode,
+            "from local storage:",
+            productInfo
+        );
+    } else {
+        productInfo = await getProductInfoFromServer(productCode);
+        console.log(
+            "product info for",
+            productCode,
+            "from server:",
+            productInfo
+        );
+        try {
+            localStorage.setItem(productCode, JSON.stringify(productInfo));
+        } catch (error) {
+            console.error("Error setting in localStorage:", error);
+        }
+    }
+    return productInfo;
 };
 
 const fetchUserInventory = () => {
@@ -56,13 +95,10 @@ const fetchUserInventory = () => {
 
                 let productData = await getProductInfo(product.productCode);
 
-                console.log("productData", productData);
-
                 if (!productData) {
                     console.log(
                         "could not find product data for",
-                        product.productCode,
-                        "with /GetProductInfo"
+                        product.productCode
                     );
                 } else {
                     let type = productData["$type"];
