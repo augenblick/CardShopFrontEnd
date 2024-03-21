@@ -2,6 +2,32 @@ let apiServer = "https://localhost:32774";
 let userId = "1";
 let allInventory;
 
+const getProductInfo = (productId) => {
+    // Get Product Info
+    const productInfoRequestBody = {
+        /* Your request data goes here */
+    };
+    return fetch(
+        apiServer + "/CardShop/GetProductInfo?productCode=" + productId,
+        {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json",
+            },
+            body: JSON.stringify(productInfoRequestBody),
+        }
+    )
+        .then((response) => response.json())
+        .then((data) => {
+            // Handle the response data here
+            console.log("product info for", productId, ":", data);
+            return data;
+        })
+        .catch((error) => {
+            console.error("Error:", error);
+        });
+};
+
 const fetchUserInventory = () => {
     // Fetch User Inventory
     const userInventoryRequestBody = {
@@ -15,24 +41,45 @@ const fetchUserInventory = () => {
         body: JSON.stringify(userInventoryRequestBody),
     })
         .then((response) => response.json())
-        .then((data) => {
+        .then(async (data) => {
             // Handle the response data here
             console.log("user inventory", data);
 
             const table = document.getElementById("user_inventory_table");
-            let table_html = "<tr><th>Product</th><th>Qty</th></tr>";
+            let table_html =
+                "<thead><tr><th colspan='3' class='big'>User Inventory</th></tr><tr><th>Product</th><th>Qty</th><th>Open</th></tr></thead>";
 
             for (product of data) {
-                let productData = allInventory.find(
-                    (obj) => obj.product.code === product.productCode
-                );
+                // let productData = allInventory.find(
+                //     (obj) => obj.product.code === product.productCode
+                // );
 
-                table_html +=
-                    "<tr><td>" +
-                    productData.product.name +
-                    "</td><td>" +
-                    product.count +
-                    "</td></tr>";
+                let productData = await getProductInfo(product.productCode);
+
+                console.log("productData", productData);
+
+                if (!productData) {
+                    console.log(
+                        "could not find product data for",
+                        product.productCode,
+                        "with /GetProductInfo"
+                    );
+                } else {
+                    let type = productData["$type"];
+
+                    table_html +=
+                        "<tr><td>" +
+                        productData.name +
+                        "</td><td>" +
+                        product.count +
+                        "</td><td>" +
+                        (type != "Card"
+                            ? "<button onclick='openProduct(\"" +
+                              productData.code +
+                              "\")'>Open 1</button>"
+                            : "") +
+                        "</td></tr>";
+                }
             }
             table.innerHTML = table_html;
         })
@@ -81,7 +128,8 @@ const fetchUserInfo = () => {
             console.log("user info", data);
 
             const table = document.getElementById("user_info_table");
-            let table_html = "<tr><th>Username</th><th>Balance</th></tr>";
+            let table_html =
+                "<thead><tr><th colspan='2'>User Info</th></tr><tr><th>Username</th><th>Balance</th></tr></thead>";
 
             table_html +=
                 "<tr><td>" +
@@ -133,7 +181,7 @@ const fetchShopInventory = () => {
 
             const table = document.getElementById("shop_inventory_table");
             let table_html =
-                "<tr><th>Product</th><th>Qty</th><th>Price</th><th>Buy</th></tr>";
+                "<thead><tr><th colspan='4' class='big'><strong>Shop Inventory</strong></th></tr><tr><th>Product</th><th>Qty</th><th>Price</th><th>Buy</th></tr></thead>";
             for (product of sortedInventory) {
                 table_html +=
                     "<tr><td>" +
@@ -148,7 +196,7 @@ const fetchShopInventory = () => {
                     "</td><td>" +
                     "<button onclick='buyProduct(\"" +
                     product.product.code +
-                    "\")'>Buy</button>" +
+                    "\")'>Buy 1</button>" +
                     "</td></tr>";
             }
             table.innerHTML = table_html;
@@ -175,6 +223,30 @@ const buyProduct = (productId) => {
         .then((data) => {
             // Handle the response data here
             console.log("buy product response", data);
+            refresh();
+        })
+        .catch((error) => {
+            console.error("Error:", error);
+        });
+};
+
+const openProduct = (productId) => {
+    // Open Product
+    const openProductRequestBody = {
+        userId: userId,
+        inventoryProductsToOpen: [{ productCode: productId, count: 1 }],
+    };
+    fetch(apiServer + "/CardShop/OpenInventoryProducts", {
+        method: "POST",
+        headers: {
+            "Content-Type": "application/json",
+        },
+        body: JSON.stringify(openProductRequestBody),
+    })
+        .then((response) => response.json())
+        .then((data) => {
+            // Handle the response data here
+            console.log("open product response", data);
             refresh();
         })
         .catch((error) => {
