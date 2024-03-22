@@ -15,14 +15,16 @@ const displayCard = async (productCode) => {
     } else {
         let productInfo = await getProductInfo(productCode);
 
-        console.log("product info", productInfo);
+        let set = getCardSetInfo().find(
+            (obj) => obj.setCode === productInfo.setCode
+        ).name;
 
         if (productInfo["$type"] === "Card") {
             let html =
                 // `<div class="box <small>">
                 `<strong>Name:</strong> ${productInfo.name}<br />
             <strong>Code:</strong> ${productInfo.code}<br />
-            <strong>Set:</strong> ${productInfo.setCode}<br />
+            <strong>Set:</strong> ${set || productInfo.setCode}<br />
             <strong>Rarity:</strong> ${productInfo.rarityCode}<br />
             <strong>Side:</strong> ${productInfo.sideCode}<br />
             <strong>Type:</strong> ${productInfo.typeCode}<br />
@@ -37,6 +39,30 @@ const displayCard = async (productCode) => {
             displayedCard = productCode;
         }
     }
+};
+
+const getCardSetInfo = () => {
+    let cardSetInfo = localStorage.getItem("cardSetInfo");
+
+    if (cardSetInfo) {
+        cardSetInfo = JSON.parse(cardSetInfo);
+    } else {
+        fetch(apiServer + "/CardShop/GetAllAvailableCardSetInfo")
+            .then((response) => response.json())
+            .then((data) => {
+                console.log("card set info", data);
+                cardSetInfo = data.cardSetsInfo;
+                localStorage.setItem(
+                    "cardSetInfo",
+                    JSON.stringify(cardSetInfo)
+                );
+            })
+            .catch((err) => {
+                console.error("Error:", err);
+            });
+    }
+
+    return cardSetInfo;
 };
 
 const getProductInfoFromServer = (productCode) => {
@@ -348,7 +374,7 @@ const refresh = () => {
     fetchShopInventory();
 };
 
-const initialize = () => {
+const initialize = async () => {
     // Get the API server url and user id from local storage
     apiServer = localStorage.getItem("apiServer") || apiServer;
     userId = localStorage.getItem("userId") || userId;
@@ -372,6 +398,8 @@ const initialize = () => {
             refresh();
         });
     });
+
+    getCardSetInfo();
 
     refresh();
 };
