@@ -1,5 +1,5 @@
 let apiServer = "https://localhost:32774";
-let userId = "1";
+let userId = "2";
 let allInventory;
 let displayedCard;
 
