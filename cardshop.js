@@ -1,7 +1,34 @@
 let apiServer = "https://localhost:32774";
 let userId = "2";
+let userName = "wormie";
 let allInventory;
 let displayedCard;
+
+const login = (username, password) => {
+    // Login
+    const loginRequestBody = {
+        username: username,
+        password: password,
+    };
+    fetch(apiServer + "/User/Login", {
+        method: "POST",
+        headers: {
+            "Content-Type": "application/json",
+        },
+        body: JSON.stringify(loginRequestBody),
+    })
+        .then((response) => {
+            console.log("login status", response.status);
+            return response.json();
+        })
+        .then((data) => {
+            // Handle the response data here
+            console.log("login", data);
+        })
+        .catch((error) => {
+            console.error("Error:", error);
+        });
+};
 
 const displayCard = async (productCode) => {
     console.log("displayCard", productCode);
@@ -228,15 +255,16 @@ const fetchAllInventory = () => {
 
 const fetchUserInfo = () => {
     // Fetch User Info
-    const userInformationRequestBody = {};
-    fetch(apiServer + "/Testing/GetUser?userId=" + userId, {
-        method: "POST",
+    fetch(apiServer + "/CardShop/GetUser", {
+        method: "GET",
         headers: {
             "Content-Type": "application/json",
         },
-        body: JSON.stringify(userInformationRequestBody),
     })
-        .then((response) => response.json())
+        .then((response) => {
+            console.log("user info status", response.status);
+            return response.json();
+        })
         .then((data) => {
             // Handle the response data here
             console.log("user info", data);
@@ -344,7 +372,7 @@ const buyProduct = (productCode) => {
         });
 };
 
-const openProduct = (productCode) => {
+function openProduct(productCode) {
     // Open Product
     const openProductRequestBody = {
         userId: userId,
@@ -366,7 +394,7 @@ const openProduct = (productCode) => {
         .catch((error) => {
             console.error("Error:", error);
         });
-};
+}
 
 const refresh = () => {
     fetchAllInventory();
@@ -400,8 +428,8 @@ const initialize = async () => {
     });
 
     getCardSetInfo();
+    login(userName, "password123");
 
     refresh();
 };
-
 initialize();
