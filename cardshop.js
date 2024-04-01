@@ -3,6 +3,7 @@ let userId = "2";
 let userName = "wormie";
 let allInventory;
 let displayedCard;
+let userSessionToken = '';
 
 const login = (username, password) => {
     // Login
@@ -23,6 +24,7 @@ const login = (username, password) => {
         })
         .then((data) => {
             // Handle the response data here
+            userSessionToken = data.token
             console.log("login", data);
         })
         .catch((error) => {
@@ -104,6 +106,7 @@ const getProductInfoFromServer = (productCode) => {
             method: "POST",
             headers: {
                 "Content-Type": "application/json",
+                "Authorization": `Bearer ${userSessionToken}`
             },
             body: JSON.stringify(productInfoRequestBody),
         }
@@ -162,10 +165,11 @@ const fetchUserInventory = () => {
     const userInventoryRequestBody = {
         /* Your request data goes here */
     };
-    fetch(apiServer + "/Testing/GetUserInventory?userId=" + userId, {
+    fetch(apiServer + "/Admin/GetUserInventoryByUserId?userId=" + userId, {
         method: "POST",
         headers: {
             "Content-Type": "application/json",
+            "Authorization": `Bearer ${userSessionToken}`
         },
         body: JSON.stringify(userInventoryRequestBody),
     })
@@ -259,6 +263,7 @@ const fetchUserInfo = () => {
         method: "GET",
         headers: {
             "Content-Type": "application/json",
+            "Authorization": `Bearer ${userSessionToken}`
         },
     })
         .then((response) => {
@@ -358,6 +363,7 @@ const buyProduct = (productCode) => {
         method: "POST",
         headers: {
             "Content-Type": "application/json",
+            "Authorization": `Bearer ${userSessionToken}`
         },
         body: JSON.stringify(buyProductRequestBody),
     })
@@ -382,6 +388,7 @@ function openProduct(productCode) {
         method: "POST",
         headers: {
             "Content-Type": "application/json",
+            "Authorization": `Bearer ${userSessionToken}`
         },
         body: JSON.stringify(openProductRequestBody),
     })
