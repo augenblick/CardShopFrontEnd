@@ -1,7 +1,38 @@
 let apiServer = "https://localhost:32774";
-let userId = "2";
+let userName = "wormie";
+let password = "";
 let allInventory;
 let displayedCard;
+let userSessionToken = "dummy token";
+
+const login = async (username, password) => {
+    // Login
+    const loginRequestBody = {
+        username: username,
+        password: password,
+    };
+    return fetch(apiServer + "/User/Login", {
+        method: "POST",
+        headers: {
+            "Content-Type": "application/json",
+        },
+        body: JSON.stringify(loginRequestBody),
+    })
+        .then((response) => {
+            console.log("login status", response.status);
+            return response.json();
+        })
+        .then((data) => {
+            // Handle the response data here
+            userSessionToken = data.token;
+
+            console.log("login", data);
+            return data.token;
+        })
+        .catch((error) => {
+            console.error("Error:", error);
+        });
+};
 
 const displayCard = async (productCode) => {
     console.log("displayCard", productCode);
@@ -77,6 +108,7 @@ const getProductInfoFromServer = (productCode) => {
             method: "POST",
             headers: {
                 "Content-Type": "application/json",
+                Authorization: `Bearer ${userSessionToken}`,
             },
             body: JSON.stringify(productInfoRequestBody),
         }
@@ -132,15 +164,13 @@ const getProductInfo = async (productCode) => {
 
 const fetchUserInventory = () => {
     // Fetch User Inventory
-    const userInventoryRequestBody = {
-        /* Your request data goes here */
-    };
-    fetch(apiServer + "/Testing/GetUserInventory?userId=" + userId, {
-        method: "POST",
+
+    fetch(apiServer + "/CardShop/GetUserInventory", {
+        method: "GET",
         headers: {
             "Content-Type": "application/json",
+            Authorization: `Bearer ${userSessionToken}`,
         },
-        body: JSON.stringify(userInventoryRequestBody),
     })
         .then((response) => response.json())
         .then(async (data) => {
@@ -162,12 +192,14 @@ const fetchUserInventory = () => {
                 //     (obj) => obj.product.code === product.productCode
                 // );
 
-                let productData = await getProductInfo(product.productCode);
+                console.log("product.product", product.product);
+
+                let productData = await getProductInfo(product.product.code);
 
                 if (!productData) {
                     console.log(
                         "could not find product data for",
-                        product.productCode
+                        product.product.productCode
                     );
                 } else {
                     let type = productData["$type"];
@@ -226,17 +258,21 @@ const fetchAllInventory = () => {
         });
 };
 
-const fetchUserInfo = () => {
+const fetchUserInfo = async () => {
+    console.log("fetching user info");
+    console.log("  user session token:", userSessionToken);
     // Fetch User Info
-    const userInformationRequestBody = {};
-    fetch(apiServer + "/Testing/GetUser?userId=" + userId, {
-        method: "POST",
+    await fetch(apiServer + "/CardShop/GetUser", {
+        method: "GET",
         headers: {
             "Content-Type": "application/json",
+            Authorization: `Bearer ${userSessionToken}`,
         },
-        body: JSON.stringify(userInformationRequestBody),
     })
-        .then((response) => response.json())
+        .then((response) => {
+            console.log("user info status", response.status);
+            return response.json();
+        })
         .then((data) => {
             // Handle the response data here
             console.log("user info", data);
@@ -247,7 +283,7 @@ const fetchUserInfo = () => {
 
             table_html +=
                 "<tr><td>" +
-                data.userName +
+                data.username +
                 "</td><td>" +
                 new Intl.NumberFormat(undefined, {
                     style: "currency",
@@ -330,6 +366,7 @@ const buyProduct = (productCode) => {
         method: "POST",
         headers: {
             "Content-Type": "application/json",
+            Authorization: `Bearer ${userSessionToken}`,
         },
         body: JSON.stringify(buyProductRequestBody),
     })
@@ -344,7 +381,7 @@ const buyProduct = (productCode) => {
         });
 };
 
-const openProduct = (productCode) => {
+function openProduct(productCode) {
     // Open Product
     const openProductRequestBody = {
         userId: userId,
@@ -354,6 +391,7 @@ const openProduct = (productCode) => {
         method: "POST",
         headers: {
             "Content-Type": "application/json",
+            Authorization: `Bearer ${userSessionToken}`,
         },
         body: JSON.stringify(openProductRequestBody),
     })
@@ -366,7 +404,7 @@ const openProduct = (productCode) => {
         .catch((error) => {
             console.error("Error:", error);
         });
-};
+}
 
 const refresh = () => {
     fetchAllInventory();
@@ -375,9 +413,9 @@ const refresh = () => {
 };
 
 const initialize = async () => {
-    // Get the API server url and user id from local storage
+    // Get the API server url and username from local storage
     apiServer = localStorage.getItem("apiServer") || apiServer;
-    userId = localStorage.getItem("userId") || userId;
+    userName = localStorage.getItem("userName") || userName;
 
     document.addEventListener("DOMContentLoaded", () => {
         let el = document.getElementById("api_server_url");
@@ -389,19 +427,20 @@ const initialize = async () => {
             refresh();
         });
 
-        el = document.getElementById("user_id");
-        el.value = userId;
+        el = document.getElementById("user_name");
+        el.value = userName;
         // Listen for changes to user_id
         el.addEventListener("change", (event) => {
-            userId = event.target.value;
-            localStorage.setItem("userId", userId);
+            userName = event.target.value;
+            localStorage.setItem("userName", userName);
             refresh();
         });
     });
 
-    getCardSetInfo();
-
-    refresh();
+    login(userName, "password123").then((userSessionToken) => {
+        console.log("userSessionToken", userSessionToken);
+        getCardSetInfo();
+        refresh();
+    });
 };
-
 initialize();
